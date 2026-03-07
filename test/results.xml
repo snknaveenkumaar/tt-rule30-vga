@@ -1,1 +1,6 @@
-<testsuite name="dummy"></testsuite>
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="dummy" tests="1" failures="0">
+    <testcase classname="basic" name="pass"/>
+  </testsuite>
+</testsuites>
