@@ -24,38 +24,49 @@ module tt_um_rule30_vga (
     .vpos(vpos)
   );
 
-  // Rule-30 state
+  // Rule 30 automaton
   reg [319:0] state;
   reg [319:0] next_state;
-
-  integer i;
+  integer ci;
 
   always @(*) begin
     next_state[0]   = 1'b0 ^ (state[0] | state[1]);
     next_state[319] = state[318] ^ (state[319] | 1'b0);
 
-    for (i = 1; i < 319; i = i + 1)
-      next_state[i] = state[i-1] ^ (state[i] | state[i+1]);
+    for (ci = 1; ci < 319; ci = ci + 1)
+      next_state[ci] = state[ci-1] ^ (state[ci] | state[ci+1]);
   end
 
   wire new_row = (hpos == 639) && (vpos < 480);
 
   always @(posedge clk or negedge rst_n) begin
-    if (!rst_n) begin
-      state <= 320'b1 << 160;
-    end else if (new_row) begin
+    if (!rst_n)
+      state <= (320'd1 << 160);   // center seed
+    else if (new_row)
       state <= next_state;
-    end
   end
 
   wire cell_on = display_on && state[hpos[9:1]];
-
   wire [7:0] depth = vpos[8:1];
   wire [1:0] pal = ui_in[1:0];
 
-  wire [1:0] r_out = cell_on ? depth[7:6] : 2'b00;
-  wire [1:0] g_out = cell_on ? depth[6:5] : 2'b00;
-  wire [1:0] b_out = cell_on ? depth[5:4] : 2'b00;
+  wire [1:0] r_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? 2'b00 :
+    (pal==2'b01) ? (depth[7] ? 2'b11 : depth[6] ? 2'b11 : 2'b10) :
+    (pal==2'b10) ? 2'b00 : depth[7:6];
+
+  wire [1:0] g_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? (depth[7] ? 2'b11 : 2'b10) :
+    (pal==2'b01) ? (depth[7] ? 2'b01 : depth[6] ? 2'b10 : 2'b11) :
+    (pal==2'b10) ? 2'b11 : (~depth[7:6]);
+
+  wire [1:0] b_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? 2'b00 :
+    (pal==2'b01) ? 2'b00 :
+    (pal==2'b10) ? 2'b11 : depth[6:5];
 
   assign uo_out[0] = r_out[1];
   assign uo_out[4] = r_out[0];
@@ -66,8 +77,8 @@ module tt_um_rule30_vga (
   assign uo_out[3] = vsync;
   assign uo_out[7] = hsync;
 
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  assign uio_out = 8'b0;
+  assign uio_oe  = 8'b0;
 
   wire _unused = &{ena, uio_in, ui_in[7:2], 1'b0};
 
