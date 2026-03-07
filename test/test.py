@@ -1,24 +1,36 @@
-import cocotb
-from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge
+[*]
+[*] GTKWave Analyzer v3.4.0
+[*]
 
-@cocotb.test()
-async def basic_test(dut):
+[dumpfile] "tb.fst"
+[timestart] 0
 
-    clock = Clock(dut.clk, 40, units="ns")
-    cocotb.start_soon(clock.start())
+[size] 1200 600
+[pos] -1 -1
 
-    dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
-    dut.rst_n.value = 0
+[treeopen] tt_um_rule30_vga.
 
-    for _ in range(5):
-        await RisingEdge(dut.clk)
+@28
+tt_um_rule30_vga.clk
+tt_um_rule30_vga.rst_n
+tt_um_rule30_vga.ena
 
-    dut.rst_n.value = 1
+@200
+-Inputs
 
-    for _ in range(20):
-        await RisingEdge(dut.clk)
+@22
+tt_um_rule30_vga.ui_in[7:0]
 
-    assert True
+@200
+-Bidirectional Pins
+
+@22
+tt_um_rule30_vga.uio_in[7:0]
+tt_um_rule30_vga.uio_out[7:0]
+tt_um_rule30_vga.uio_oe[7:0]
+
+@200
+-Outputs
+
+@22
+tt_um_rule30_vga.uo_out[7:0]
