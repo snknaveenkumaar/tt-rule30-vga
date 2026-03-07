@@ -1,63 +1,48 @@
-title: "Rule 30 Cellular Automaton VGA Display"
-author: "NAVEEN KUMAAR S"
-description: "Implements Wolfram Rule 30 cellular automaton on a 320-cell grid and displays the chaotic evolution on a VGA monitor."
+yaml_version: 6
 
-how_it_works: |
-  A 320-bit register stores the current generation of the cellular automaton.
-  Each new generation is computed using Wolfram Rule-30:
-  new_cell = left XOR (center OR right).
+project:
+  title: "Rule 30 Cellular Automaton VGA Display"
+  author: "NAVEEN KUMAAR S"
+  description: "Hardware implementation of Wolfram Rule 30 cellular automaton rendered on a VGA monitor."
 
-  Every VGA row represents the next generation of the automaton.
-  Each cell maps to two horizontal pixels (320 × 2 = 640 pixels).
-  The initial state is a single seed cell at the center.
+  language: "Verilog"
+  clock_hz: 25000000
+  tiles: "1x1"
 
-how_to_test: |
-  Connect a VGA monitor to the Tiny VGA PMOD pins.
+  top_module: "tt_um_rule30_vga"
 
-  Provide a 25 MHz clock and release reset.
-  A triangular chaotic pattern should appear from the top center of the screen.
+  source_files:
+    - project.v
+    - hvsync_generator.v
 
-  Change ui_in[1:0] to switch colour palettes.
+  pinout:
+    ui[0]: "Palette bit 0"
+    ui[1]: "Palette bit 1"
+    ui[2]: "unused"
+    ui[3]: "unused"
+    ui[4]: "unused"
+    ui[5]: "unused"
+    ui[6]: "unused"
+    ui[7]: "unused"
 
-language: "Verilog"
-clock_hz: 25000000
-tiles: "1x1"
+    uo[0]: "VGA Red MSB"
+    uo[1]: "VGA Green MSB"
+    uo[2]: "VGA Blue MSB"
+    uo[3]: "VGA Vsync"
+    uo[4]: "VGA Red LSB"
+    uo[5]: "VGA Green LSB"
+    uo[6]: "VGA Blue LSB"
+    uo[7]: "VGA Hsync"
 
-top_module: "tt_um_rule30_vga"
+    uio[0]: "unused"
+    uio[1]: "unused"
+    uio[2]: "unused"
+    uio[3]: "unused"
+    uio[4]: "unused"
+    uio[5]: "unused"
+    uio[6]: "unused"
+    uio[7]: "unused"
 
-source_files:
-  - project.v
-  - hvsync_generator.v
-
-pinout:
-  ui[0]: "Palette select bit 0"
-  ui[1]: "Palette select bit 1"
-  ui[2]: "unused"
-  ui[3]: "unused"
-  ui[4]: "unused"
-  ui[5]: "unused"
-  ui[6]: "unused"
-  ui[7]: "unused"
-
-  uo[0]: "R1 VGA"
-  uo[1]: "G1 VGA"
-  uo[2]: "B1 VGA"
-  uo[3]: "VSYNC"
-  uo[4]: "R0 VGA"
-  uo[5]: "G0 VGA"
-  uo[6]: "B0 VGA"
-  uo[7]: "HSYNC"
-
-  uio[0]: "unused"
-  uio[1]: "unused"
-  uio[2]: "unused"
-  uio[3]: "unused"
-  uio[4]: "unused"
-  uio[5]: "unused"
-  uio[6]: "unused"
-  uio[7]: "unused"
-
-tags:
-  - vga
-  - cellular-automaton
-  - rule30
+  tags:
+    - vga
+    - cellular-automaton
