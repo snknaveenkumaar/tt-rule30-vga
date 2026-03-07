@@ -1,53 +1,63 @@
-project:
-  title:       "Rule 30 Cellular Automaton VGA Display"
-  author:      "NAVEEN KUMAAR S"          # ← PUT YOUR REAL NAME
-  description: "Implements Wolfram Rule 30 cellular automaton on a 320-cell grid, displaying 480 generations of chaotic evolution on a VGA monitor. Each row of pixels is one generation computed in real hardware."
-  how_it_works: "A 320-bit shift register stores the current generation state. Every row, all 320 cells are updated simultaneously using the Rule 30 rule: new_cell = left XOR (centre OR right). The seed is a single ON cell at position 160 (centre). Each frame reseeds from the same initial condition. VGA output maps each cell to 2 pixels wide. ui_in[1:0] selects colour palette: 00=green, 01=fire, 10=cyan, 11=rainbow."
-  how_to_test:  "Connect a VGA monitor via the Tiny VGA Pmod on uo_out. Power on and reset. You should see a triangular chaos pattern expanding from the centre top of the screen, filling 480 rows. Toggle ui_in[0] and ui_in[1] to change colour palettes."
-  language:    "Verilog"
-  clock_hz:    25000000
-  tiles:       "1x1"
+title: "Rule 30 Cellular Automaton VGA Display"
+author: "NAVEEN KUMAAR S"
+description: "Implements Wolfram Rule 30 cellular automaton on a 320-cell grid and displays the chaotic evolution on a VGA monitor."
 
-  # Source files — must list ALL .v files in src/
-  source_files:
-    - "project.v"
-    - "hvsync_generator.v"
+how_it_works: |
+  A 320-bit register stores the current generation of the cellular automaton.
+  Each new generation is computed using Wolfram Rule-30:
+  new_cell = left XOR (center OR right).
 
-  # Must match module name in project.v EXACTLY
-  top_module: "tt_um_rule30_vga"
+  Every VGA row represents the next generation of the automaton.
+  Each cell maps to two horizontal pixels (320 × 2 = 640 pixels).
+  The initial state is a single seed cell at the center.
 
-  # Pin descriptions
-  pinout:
-    ui[0]: "Palette bit 0"
-    ui[1]: "Palette bit 1"
-    ui[2]: "unused"
-    ui[3]: "unused"
-    ui[4]: "unused"
-    ui[5]: "unused"
-    ui[6]: "unused"
-    ui[7]: "unused"
-    uo[0]: "R1 (VGA Red MSB)"
-    uo[1]: "G1 (VGA Green MSB)"
-    uo[2]: "B1 (VGA Blue MSB)"
-    uo[3]: "VGA Vsync"
-    uo[4]: "R0 (VGA Red LSB)"
-    uo[5]: "G0 (VGA Green LSB)"
-    uo[6]: "B0 (VGA Blue LSB)"
-    uo[7]: "VGA Hsync"
-    uio[0]: "unused"
-    uio[1]: "unused"
-    uio[2]: "unused"
-    uio[3]: "unused"
-    uio[4]: "unused"
-    uio[5]: "unused"
-    uio[6]: "unused"
-    uio[7]: "unused"
+how_to_test: |
+  Connect a VGA monitor to the Tiny VGA PMOD pins.
 
-  # Required tags
-  tags:
-    - "vga"
-    - "cellular automaton"
-    - "chaos"
-    - "educational"
+  Provide a 25 MHz clock and release reset.
+  A triangular chaotic pattern should appear from the top center of the screen.
 
-  discord: ""   # optional, leave blank
+  Change ui_in[1:0] to switch colour palettes.
+
+language: "Verilog"
+clock_hz: 25000000
+tiles: "1x1"
+
+top_module: "tt_um_rule30_vga"
+
+source_files:
+  - project.v
+  - hvsync_generator.v
+
+pinout:
+  ui[0]: "Palette select bit 0"
+  ui[1]: "Palette select bit 1"
+  ui[2]: "unused"
+  ui[3]: "unused"
+  ui[4]: "unused"
+  ui[5]: "unused"
+  ui[6]: "unused"
+  ui[7]: "unused"
+
+  uo[0]: "R1 VGA"
+  uo[1]: "G1 VGA"
+  uo[2]: "B1 VGA"
+  uo[3]: "VSYNC"
+  uo[4]: "R0 VGA"
+  uo[5]: "G0 VGA"
+  uo[6]: "B0 VGA"
+  uo[7]: "HSYNC"
+
+  uio[0]: "unused"
+  uio[1]: "unused"
+  uio[2]: "unused"
+  uio[3]: "unused"
+  uio[4]: "unused"
+  uio[5]: "unused"
+  uio[6]: "unused"
+  uio[7]: "unused"
+
+tags:
+  - vga
+  - cellular-automaton
+  - rule30
