@@ -1,27 +1,85 @@
-/*
- * Copyright (c) 2024 Your Name
- * SPDX-License-Identifier: Apache-2.0
- */
-
+// Rule 30 Cellular Automaton VGA Display
+// IEEE Open Silicon Submission
+// Author: Your Name
 `default_nettype none
 
-module tt_um_example (
-    input  wire [7:0] ui_in,    // Dedicated inputs
-    output wire [7:0] uo_out,   // Dedicated outputs
-    input  wire [7:0] uio_in,   // IOs: Input path
-    output wire [7:0] uio_out,  // IOs: Output path
-    output wire [7:0] uio_oe,   // IOs: Enable path (active high: 0=input, 1=output)
-    input  wire       ena,      // always 1 when the design is powered, so you can ignore it
-    input  wire       clk,      // clock
-    input  wire       rst_n     // reset_n - low to reset
+module tt_um_rule30_vga (
+    input  wire [7:0] ui_in,
+    output wire [7:0] uo_out,
+    inout  wire [7:0] uio,
+    output wire [7:0] uio_out,
+    output wire [7:0] uio_oe,
+    input  wire       ena,
+    input  wire       clk,
+    input  wire       rst_n
 );
+  wire hsync, vsync, display_on;
+  wire [9:0] hpos, vpos;
 
-  // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  hvsync_generator hvsync_gen (
+    .clk(clk), .reset(~rst_n),
+    .hsync(hsync), .vsync(vsync),
+    .display_on(display_on),
+    .hpos(hpos), .vpos(vpos)
+  );
 
-  // List all unused inputs to prevent warnings
-  wire _unused = &{ena, clk, rst_n, 1'b0};
+  // 320-cell Rule 30: new[i] = state[i-1] XOR (state[i] OR state[i+1])
+  reg [319:0] state;
+  reg [319:0] next_state;
+  integer ci;
 
+  always @(*) begin
+    next_state[0]   = 1'b0 ^ (state[0] | state[1]);
+    next_state[319] = state[318] ^ (state[319] | 1'b0);
+    for (ci = 1; ci < 319; ci = ci + 1)
+      next_state[ci] = state[ci-1] ^ (state[ci] | state[ci+1]);
+  end
+
+  wire new_row   = (hpos == 639) && (vpos < 480);
+  wire new_frame = (hpos == 0)   && (vpos == 0);
+
+  always @(posedge clk or negedge rst_n) begin
+    if (!rst_n) begin
+      state <= 320'd0;
+      state[160] <= 1'b1;
+    end else if (new_frame) begin
+      state <= 320'd0;
+      state[160] <= 1'b1;
+    end else if (new_row) begin
+      state <= next_state;
+    end
+  end
+
+  wire cell_on = display_on && state[hpos[9:1]];
+  wire [7:0] depth = vpos[8:1];
+  wire [1:0] pal = ui_in[1:0];
+
+  wire [1:0] r_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? 2'b00 :
+    (pal==2'b01) ? (depth[7] ? 2'b11 : depth[6] ? 2'b11 : 2'b10) :
+    (pal==2'b10) ? 2'b00 : depth[7:6];
+
+  wire [1:0] g_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? (depth[7] ? 2'b11 : 2'b10) :
+    (pal==2'b01) ? (depth[7] ? 2'b01 : depth[6] ? 2'b10 : 2'b11) :
+    (pal==2'b10) ? 2'b11 : (~depth[7:6]);
+
+  wire [1:0] b_out =
+    !display_on ? 2'b00 : !cell_on ? 2'b00 :
+    (pal==2'b00) ? 2'b00 :
+    (pal==2'b01) ? 2'b00 :
+    (pal==2'b10) ? 2'b11 : depth[6:5];
+
+  assign uo_out[0] = r_out[1]; assign uo_out[4] = r_out[0];
+  assign uo_out[1] = g_out[1]; assign uo_out[5] = g_out[0];
+  assign uo_out[2] = b_out[1]; assign uo_out[6] = b_out[0];
+  assign uo_out[3] = vsync;
+  assign uo_out[7] = hsync;
+
+  assign uio_out = 8'b0;
+  assign uio_oe  = 8'b0;
+
+  wire _unused = &{ena, uio, ui_in[7:2], 1'b0};
 endmodule
