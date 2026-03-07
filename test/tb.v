@@ -1,49 +1,32 @@
-`default_nettype none
-`timescale 1ns / 1ps
+import cocotb
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge, Timer
 
-/* This testbench just instantiates the module and makes some convenient wires
-   that can be driven / tested by the cocotb test.py.
-*/
-module tb ();
+@cocotb.test()
+async def test_rule30(dut):
+    """Basic test: reset, run for some clocks, check outputs are not X"""
 
-  // Dump the signals to a FST file. You can view it with gtkwave or surfer.
-  initial begin
-    $dumpfile("tb.fst");
-    $dumpvars(0, tb);
-    #1;
-  end
+    # Start 25MHz clock
+    clock = Clock(dut.clk, 40, units="ns")
+    cocotb.start_soon(clock.start())
 
-  // Wire up the inputs and outputs:
-  reg clk;
-  reg rst_n;
-  reg ena;
-  reg [7:0] ui_in;
-  reg [7:0] uio_in;
-  wire [7:0] uo_out;
-  wire [7:0] uio_out;
-  wire [7:0] uio_oe;
-`ifdef GL_TEST
-  wire VPWR = 1'b1;
-  wire VGND = 1'b0;
-`endif
+    # Apply reset
+    dut.rst_n.value = 0
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    dut.ena.value = 1
 
-  // Replace tt_um_example with your module name:
-  tt_um_example user_project (
+    await Timer(200, units="ns")
+    dut.rst_n.value = 1
 
-      // Include power ports for the Gate Level test:
-`ifdef GL_TEST
-      .VPWR(VPWR),
-      .VGND(VGND),
-`endif
+    # Run for enough clocks to get past first row (800 clocks = 1 row)
+    for _ in range(1000):
+        await RisingEdge(dut.clk)
 
-      .ui_in  (ui_in),    // Dedicated inputs
-      .uo_out (uo_out),   // Dedicated outputs
-      .uio_in (uio_in),   // IOs: Input path
-      .uio_out(uio_out),  // IOs: Output path
-      .uio_oe (uio_oe),   // IOs: Enable path (active high: 0=input, 1=output)
-      .ena    (ena),      // enable - goes high when design is selected
-      .clk    (clk),      // clock
-      .rst_n  (rst_n)     // not reset
-  );
+    # Check outputs are driven (not high-Z or X)
+    # vsync and hsync should be toggling
+    assert dut.uo_out.value.is_resolvable, "uo_out has X/Z values"
+    assert dut.uio_out.value == 0, "uio_out should be 0"
+    assert dut.uio_oe.value == 0, "uio_oe should be 0"
 
-endmodule
+    cocotb.log.info("Rule 30 VGA test passed!")
