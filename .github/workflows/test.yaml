@@ -26,23 +26,20 @@ jobs:
           cd test
           make clean
           make
-          # Fail if any <failure> or <error> tags appear in results
           ! grep -E '<(failure|error)' results.xml
 
       - name: Upload waveform and test results
-        if: success() || failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
+          if-no-files-found: warn
           path: |
-            test/tb.fst
             test/results.xml
-            test/output/*
+            test/tb.vcd
 
       - name: Test summary
-        if: success() || failure()
+        if: always() && hashFiles('test/results.xml') != ''
         uses: test-summary/action@v2.3
         with:
           paths: test/results.xml
-          # NOTE: 'type' is NOT a valid input for v2.3 — valid inputs are
-          # only 'paths', 'output', and 'show'. The action auto-detects JUnit.
