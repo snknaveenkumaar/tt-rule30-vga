@@ -17,11 +17,6 @@ COMPILE_ARGS    += -g2012
 else
 
 # ── Gate-Level simulation ─────────────────────────────────────────
-# -DFUNCTIONAL   : use functional (not timing) cell models
-# -DSIM          : enable simulation-mode in PDK cells  
-# -DUNIT_DELAY   : use unit delay model
-# -DUSE_POWER_PINS: CRITICAL - makes FILLER/TAP cells include VPWR/VGND/VPB/VNB
-#                  ports so iverilog doesn't error "port X is not a port of FILLER_N"
 COMPILE_ARGS += -g2012
 COMPILE_ARGS += -DFUNCTIONAL
 COMPILE_ARGS += -DSIM
@@ -31,6 +26,8 @@ VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitiv
 VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
 VERILOG_SOURCES += gate_level_netlist.v
 VERILOG_SOURCES += $(PWD)/tb.v
+# Pass GL_TEST=1 as environment variable to the cocotb Python test
+export GL_TEST = 1
 
 endif
 
