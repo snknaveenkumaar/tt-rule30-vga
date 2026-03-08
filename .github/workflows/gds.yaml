@@ -41,7 +41,6 @@ jobs:
         uses: test-summary/action@v2.3
         with:
           paths: test/results.xml
-          type: junit
 
   viewer:
     needs: gds
