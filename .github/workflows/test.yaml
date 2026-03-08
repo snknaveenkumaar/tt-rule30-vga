@@ -44,6 +44,5 @@ jobs:
         uses: test-summary/action@v2.3
         with:
           paths: test/results.xml
-          # Explicitly tell the action this is JUnit XML so it doesn't
-          # fail with "unknown test file type".
-          type: junit
+          # NOTE: 'type' is NOT a valid input for v2.3 — valid inputs are
+          # only 'paths', 'output', and 'show'. The action auto-detects JUnit.
