@@ -1,5 +1,4 @@
 name: gds
-
 on:
   push:
   workflow_dispatch:
@@ -8,11 +7,10 @@ jobs:
   gds:
     runs-on: ubuntu-24.04
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
       - name: Build GDS
         uses: TinyTapeout/tt-gds-action@ttsky26a
         with:
@@ -29,19 +27,27 @@ jobs:
     needs: gds
     runs-on: ubuntu-24.04
     steps:
-      - name: checkout repo
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
       - name: GL test
         uses: TinyTapeout/tt-gds-action/gl_test@ttsky26a
+      # The GL test action produces test/results.xml.
+      # We must tell test-summary it is JUnit format or it errors with
+      # "unknown test file type for 'test/results.xml'".
+      - name: Test summary
+        if: success() || failure()
+        uses: test-summary/action@v2.3
+        with:
+          paths: test/results.xml
+          type: junit
 
   viewer:
     needs: gds
     runs-on: ubuntu-24.04
     permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
+      pages: write
+      id-token: write
     steps:
       - uses: TinyTapeout/tt-gds-action/viewer@ttsky26a
