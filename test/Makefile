@@ -1,23 +1,45 @@
-SIM ?= icarus
+## Makefile for TinyTapeout cocotb simulation
+## Supports both RTL (default) and Gate-Level (GATES=yes) simulation
+
+# ── Simulator ────────────────────────────────────────────────────
+SIM          ?= icarus
 TOPLEVEL_LANG ?= verilog
 
-SRC_DIR = $(PWD)/../src
+# ── Top-level module name (must match your tb.v instantiation) ───
+TOPLEVEL     = tt_um_rule30_vga
 
-VERILOG_SOURCES = \
-	$(SRC_DIR)/project.v \
-	$(SRC_DIR)/hvsync_generator.v
+# ── Python test module (filename without .py) ────────────────────
+MODULE       = test
 
-TOPLEVEL = tt_um_rule30_vga
-MODULE = test
+# ── Source files ─────────────────────────────────────────────────
+ifneq ($(GATES),yes)
 
-SIM_BUILD = sim_build
+# RTL simulation
+VERILOG_SOURCES  = $(PWD)/../src/hvsync_generator.v
+VERILOG_SOURCES += $(PWD)/../src/tt_um_rule30_vga.v
 
-COMPILE_ARGS += -I$(SRC_DIR)
+else
 
-EXTRA_ARGS += -fst
+# Gate-Level simulation – netlist provided by tt-gds-action
+COMPILE_ARGS    += -DGL_TEST
+COMPILE_ARGS    += -DFUNCTIONAL
+COMPILE_ARGS    += -DSIM
+COMPILE_ARGS    += -DUNIT_DELAY=\#1
+VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
+VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
+VERILOG_SOURCES += gate_level_netlist.v
 
+endif
+
+# ── Waveform dump ─────────────────────────────────────────────────
+COCOTB_HDL_TIMEUNIT      = 1ns
+COCOTB_HDL_TIMEPRECISION = 1ps
+
+ifeq ($(SIM),icarus)
+COMPILE_ARGS += -g2012
+# Dump FST waveform
+PLUSARGS     += +dump_file=tb.fst
+endif
+
+# ── Include cocotb Makefile (must be last) ────────────────────────
 include $(shell cocotb-config --makefiles)/Makefile.sim
-
-sim:
-	pytest || true
-	echo "<testsuite></testsuite>" > results.xml
