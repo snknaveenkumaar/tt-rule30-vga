@@ -33,11 +33,13 @@ jobs:
           submodules: recursive
       - name: GL test
         uses: TinyTapeout/tt-gds-action/gl_test@ttsky26a
-      # The GL test action produces test/results.xml.
-      # We must tell test-summary it is JUnit format or it errors with
-      # "unknown test file type for 'test/results.xml'".
+      - name: Check results exist
+        id: check
+        if: always()
+        run: |
+          [ -f test/results.xml ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
       - name: Test summary
-        if: success() || failure()
+        if: always() && steps.check.outputs.exists == 'true'
         uses: test-summary/action@v2.3
         with:
           paths: test/results.xml
