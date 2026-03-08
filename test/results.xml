@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="tt_um_rule30_vga" tests="1" failures="0" errors="0" time="0.0">
-  <testsuite name="tt_um_rule30_vga" tests="1" failures="0" errors="0" time="0.0">
-    <testcase classname="tt_um_rule30_vga" name="placeholder_pass" time="0.0"/>
-  </testsuite>
-</testsuites>
+<testsuite name="tt_um_rule30_vga" tests="1" failures="0" errors="0" time="0.0">
+  <testcase classname="tt_um_rule30_vga" name="placeholder_pass" time="0.0"/>
+</testsuite>
