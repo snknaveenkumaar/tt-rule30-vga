@@ -7,11 +7,13 @@ COCOTB_HDL_TIMEUNIT      = 1ns
 COCOTB_HDL_TIMEPRECISION = 1ps
 
 ifneq ($(GATES),yes)
+# RTL sim - source files are project.v and hvsync_generator.v
 VERILOG_SOURCES  = $(PWD)/../src/hvsync_generator.v
 VERILOG_SOURCES += $(PWD)/../src/project.v
 VERILOG_SOURCES += $(PWD)/tb.v
 COMPILE_ARGS    += -g2012
 else
+# GL sim - gate_level_netlist.v is placed here by tt-gds-action/gl_test
 COMPILE_ARGS += -g2012
 COMPILE_ARGS += -DGL_TEST
 COMPILE_ARGS += -DFUNCTIONAL
