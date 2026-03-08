@@ -19,27 +19,30 @@ jobs:
           python-version: '3.11'
 
       - name: Install Python packages
-        run: pip install -r test/requirements.txt
+        run: pip install cocotb pytest
 
       - name: Run tests
         run: |
           cd test
-          make clean
           make
           ! grep -E '<(failure|error)' results.xml
 
-      - name: Upload waveform and test results
+      - name: Check results exist
+        id: check
+        if: always()
+        run: |
+          [ -f test/results.xml ] && echo "exists=true" >> $GITHUB_OUTPUT || echo "exists=false" >> $GITHUB_OUTPUT
+
+      - name: Upload results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           if-no-files-found: warn
-          path: |
-            test/results.xml
-            test/tb.vcd
+          path: test/results.xml
 
       - name: Test summary
-        if: always() && hashFiles('test/results.xml') != ''
+        if: always() && steps.check.outputs.exists == 'true'
         uses: test-summary/action@v2.3
         with:
           paths: test/results.xml
